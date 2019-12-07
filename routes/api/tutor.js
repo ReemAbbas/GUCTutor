@@ -10,10 +10,11 @@ var path = require('path');
 const passport = require('passport')
 
 //-------------------authentication----------------------------
+require('dotenv').config();
 var objectid = require("mongodb").ObjectID;
 const jwt = require("jsonwebtoken");
 var store = require("store");
-const tokenKey = require("../../config/keys").secretOrKey;
+const tokenKey = process.env.secretOrKey;
 
 router.put("/offer", async (req, res) => {
   jwt.verify(store.get("token"), tokenKey, async (err, authorizedData) => {
@@ -21,8 +22,6 @@ router.put("/offer", async (req, res) => {
       res.sendStatus(403);
     } else {
       try {
-        const major=req.body.major;
-        const semester=req.body.semester;
         const course=req.body.course;
         const userID = objectid(authorizedData.id);
     
@@ -40,22 +39,22 @@ router.put("/offer", async (req, res) => {
   })  
 });
 
-router.get("/getRequests", async (req, res) => {
+router.get("/getRequests/:course", async (req, res) => {
   jwt.verify(store.get("token"), tokenKey, async (err, authorizedData) => {
     if (err) {
       res.sendStatus(403);
     } else {
       try {
-        const course=req.body.course;
+        const course=req.params.course;
         const requestGotten= await User.find( { courseTake: { $all: [course] } } );
     
         if(!requestGotten || requestGotten.length==0){
             return res.status(400).json({ error: "There are currently no requests for this course!" });
           }else{
-              var result="";
+              var result=[];
               for(var i=0; i<requestGotten.length;i++){
-                  result+=requestGotten[i].firstName + " " + requestGotten[i].lastName +"  " + requestGotten[i].email 
-                  + "  " + requestGotten[i].phoneNumber +"  " + requestGotten[i].gender + "  " + requestGotten[i].location+ "\n";  
+                  result.push(requestGotten[i].firstName + " " + requestGotten[i].lastName +"  " + requestGotten[i].email 
+                  + "  " + requestGotten[i].phoneNumber +"  " + requestGotten[i].gender + "  " + requestGotten[i].location);  
              }
              return res.status(200).send(result);
           }

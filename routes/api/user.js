@@ -5,16 +5,20 @@ const router = express.Router();
 //--------------------models--------------------
 const User = require('../../models/User');
 
+//----------------------api----------------------
+const  mockarooKey = process.env.mockarooKey;
+const axios=require('axios');
+
 //-------------------pathToSendFile----------------------------
 var path = require('path');
 const passport = require('passport')
 
 const bcrypt = require("bcryptjs");
 const validator = require("../../Validations/validations");
-
+require('dotenv').config();
 //-------------------authentication----------------------------
 const jwt = require("jsonwebtoken");
-const tokenKey = require("../../config/keys").secretOrKey;
+const tokenKey = process.env.secretOrKey;
 var store = require("store");
 var objectid = require("mongodb").ObjectID;
 
@@ -55,10 +59,7 @@ router.post("/register", async (req, res) => {
     gender,
     location,
     courseTake:[],
-    courseGive:[],
-    requests:[],
-    offers:[],
-    notifications:[]
+    courseGive:[]
    
   });
 
@@ -90,6 +91,36 @@ router.post("/login", async (req, res) => {
 router.get("/logout", async (req, res) => {
   store.remove("token");
   res.send("Logged out");
+});
+
+const checkToken = (req, res, next) => {
+  const header = store.get("token");
+  if (typeof header !== "undefined") {
+    req.token = header;
+    //next middleware
+    next();
+  } else {
+    //If header is undefined return Forbidden (403)
+    res.sendStatus(403);
+  }
+};
+
+router.get("/auth", checkToken, (req, res) => {
+  //verify the JWT token generated for the user
+  jwt.verify(store.get("token"), tokenKey, (err, authorizedData) => {
+    if (err) {
+      //If error send Forbidden (403)
+      console.log("ERROR: Could not connect to the protected route");
+      res.sendStatus(403);
+    } else {
+      //If token is successfully verified, we can send the autorized data
+      res.json({
+        message: "Successful log in",
+        authorizedData
+      });
+      console.log("SUCCESS: Connected to protected route");
+    }
+  });
 });
 
 router.put("/editAccount",async(req,res) =>{
@@ -137,4 +168,29 @@ router.put("/editAccount",async(req,res) =>{
 }
   })
 });
+
+
+//takes location in body
+router.get("/suggestions/locations/:location", async (req, res) => {
+  const locations=await axios.get('https://my.api.mockaroo.com/locations.json?key='+ mockarooKey);
+  const target=req.params.location;
+  const data=locations.data;
+ 
+  for(var i=0;i<data.length;++i){
+    if(data[i].location.localeCompare(target)!=0){
+      data.splice(i,1);
+      i--;
+    }
+  }
+  res.send(data);
+});
+
+router.get("/location/:id",async(req,res)=>{
+     const userID=req.params.id;
+     const user= await User.findOne({_id:userID});
+     res.send(user.location);
+ 
+});
+
+ 
 module.exports = router

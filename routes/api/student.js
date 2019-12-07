@@ -10,10 +10,11 @@ var path = require('path');
 const passport = require('passport')
 
 //-------------------authentication----------------------------
+require('dotenv').config();
 var objectid = require("mongodb").ObjectID;
 const jwt = require("jsonwebtoken");
 var store = require("store");
-const tokenKey = require("../../config/keys").secretOrKey;
+const tokenKey = process.env.secretOrKey;
 
 router.put("/request", async (req, res) => {
   jwt.verify(store.get("token"), tokenKey, async (err, authorizedData) => {
@@ -21,8 +22,6 @@ router.put("/request", async (req, res) => {
       res.sendStatus(403);
     } else {
       try {
-        const major=req.body.major;
-        const semester=req.body.semester;
         const course=req.body.course;
         const userID = objectid(authorizedData.id);
     
@@ -40,22 +39,22 @@ router.put("/request", async (req, res) => {
   })   
 });
 
-router.get("/getOffers", async (req, res) => {
+router.get("/getOffers/:course", async (req, res) => {
   jwt.verify(store.get("token"), tokenKey, async (err, authorizedData) => {
     if (err) {
       res.sendStatus(403);
     } else {
       try {
-        const course=req.body.course;
-        const offerstGotten= await User.find( { courseGive: { $all: [course] } } );
+        const course=req.params.course;
+        const offersGotten= await User.find( { courseGive: { $all: [course] } } );
     
-        if(!offerstGotten || offerstGotten.length==0){
+        if(!offersGotten || offersGotten.length==0){
             return res.status(400).json({ error: "There are currently no offers for this course!" });
           }else{
-              var result="";
-              for(var i=0; i<offerstGotten.length;i++){
-                  result+=offerstGotten[i].firstName + " " + offerstGotten[i].lastName +"  " + offerstGotten[i].email 
-                  + "  " + offerstGotten[i].phoneNumber +"  " + offerstGotten[i].gender + "  " + offerstGotten[i].location+ "\n";  
+              var result=[];
+              for(var i=0; i<offersGotten.length;i++){
+                  result.push(offersGotten[i].firstName + " " + offersGotten[i].lastName +"  " + offersGotten[i].email 
+                  + "  " + offersGotten[i].phoneNumber +"  " + offersGotten[i].gender + "  " + offersGotten[i].location);  
              }
              return res.status(200).send(result);
           }
