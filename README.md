@@ -15,6 +15,8 @@ mockarooKey=The API key provided to you by mockaroo is placed here
 
 4. Next you need to start your server using the command "node server" from the command line in the root directory
 
-5. Finally run the command "npm start" from the command line in the client directory to get your application up and running
+5. Create a .env file in client directory and add the following line "SKIP_PREFLIGHT_CHECK=true"
+
+6. Finally run the command "npm start" from the command line in the client directory to get your application up and running
 
 Enjoy learning!
