@@ -2,8 +2,11 @@ const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
-var connection=mongoose.createConnection("mongodb+srv://user:1234@cluster0-phpqs.mongodb.net/db?retryWrites=true");
+const db = process.env.mongoURI;
 
+require('dotenv').config();
+
+var connection=mongoose.createConnection(process.env.mongoURI);
 
 // Create the schema
 
@@ -29,13 +32,7 @@ const UserSchema = new Schema({
 
 courseGive:{type:Array,items:[{courseName: {type:String}}]},
 
-courseTake:{type:Array,items:[{courseName: {type:String}}]},
-
-requests:{type:Array,items:[{msg:{type:String},receiverID:{type:Number}}]},
-
-offers:{type:Array,items:[{msg:{type:String},senderID:{type:Number}}]},
-
-notifications:{type:Array,items:[{msg:{ytype:String}}]}
+courseTake:{type:Array,items:[{courseName: {type:String}}]}
 
 });
 

@@ -13,11 +13,12 @@ const tutor = require("./routes/api/tutor");
 const user = require("./routes/api/user");
 
 //--------------------Mongoose + DB configuration--------------------
+require('dotenv').config();
 var mongoose = require("mongoose");
-const db = require("./config/keys_dev").mongoURI;
+//const db = require("./config/keys_dev").mongoURI;
 // Connect to mongo
 mongoose
-  .connect(db)
+  .connect(process.env.mongoURI)
   .then(() => console.log("Connected to MongoDB"))
   .catch(err => console.log(err));
 
